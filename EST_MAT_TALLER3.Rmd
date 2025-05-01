@@ -1,0 +1,128 @@
+---
+title: "EST_MAT_TALLER3"
+output: html_document
+date: "2025-05-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Punto 1
+En un bucle generar 10000 muestras aleatorias de tamaño n = 100 de una variable uniforme con parámetro 8 (ver función runif)
+
+## Punto 2
+ Calcular ˆθ1, ˆθ2, ˆθ3 para cada muestra en 3 vectores que llamará theta1, theta2 y theta3.
+
+```{r}
+set.seed(123) #Semilla para reproductibidad
+n <- 100 #Tamaño de muestra
+num_muestras <- 10000 #Número muestras
+
+#Vectores para los estimadores
+theta1 <- numeric(num_muestras) 
+theta2 <- numeric(num_muestras)
+theta3 <- numeric(num_muestras)
+
+#Bucle para generar las muestras y calcular los estimadores según los teóricos
+for (i in 1:num_muestras) {
+  muestra <- runif(n, min = 0, max = 8)
+  theta1[i] <- 2 * mean(muestra)
+  theta2[i] <- max(muestra)
+  theta3[i] <- (n + 1)* min(muestra)
+}
+```
+
+## Punto 3
+Dibuje los histogramas de los 3 estimadores. Utilice par(mfrow=c(1,3)) para que queden
+ los 3 en la misma figura.
+ 
+```{r}
+par(mfrow = c(1, 3))  
+
+hist(theta1, main = expression(hat(theta)[1] == 2 * bar(X)), col = "lightblue", xlab = "Valor", breaks = 40)
+hist(theta2, main = expression(hat(theta)[2] == max(X)), col = "lightgreen", xlab = "Valor", breaks = 40)
+hist(theta3, main = expression(hat(theta)[3] == (n+1) * min(X)), col = "lightpink", xlab = "Valor", breaks = 40)
+
+par(mfrow = c(1,1))  
+
+```
+ 
+## Punto 4
+Unir los 3 vectores con los estimadores en una matriz. Utilice tidyverse.
+
+```{r}
+library(tidyverse)
+
+estimadores <- tibble(
+  theta1 = theta1,
+  theta2 = theta2,
+  theta3 = theta3
+)
+
+```
+
+## Punto 5
+Estimar el sesgo y la varianza para los 3 estimadores. Compare con los valores teóricos
+ calculados.
+ 
+```{r}
+# Valor real de theta
+theta_real <- 8
+
+# Funciones auxiliares para hallar el sesgo y varianza más rápido
+sesgo <- function(est, real) mean(est) - real
+varianza <- function(est) var(est)
+
+# Calcular sesgo y varianza
+resultados <- tibble(
+  Estimador = c("theta1", "theta2", "theta3"),
+  Sesgo = c(sesgo(theta1, theta_real),
+            sesgo(theta2, theta_real),
+            sesgo(theta3, theta_real)),
+  Varianza = c(varianza(theta1),
+               varianza(theta2),
+               varianza(theta3))
+)
+
+print(resultados)
+
+```
+ 
+## Punto 6
+Haga una gráfica de cajas y bigotes de la matriz, que incluya los 3 estimadores y trace
+ una línea horizontal mostrando el valor real del parámetro θ.
+
+```{r}
+# Convertimos a formato largo
+estimadores_long <- estimadores %>%
+  pivot_longer(cols = everything(), names_to = "Estimador", values_to = "Valor")
+
+# Gráfico
+ggplot(estimadores_long, aes(x = Estimador, y = Valor, fill = Estimador)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 8, linetype = "dashed", color = "blue", size = 1) +
+  labs(title = "Distribución de los estimadores",
+       y = "Valor estimado de θ") +
+  theme_minimal()
+```
+
+
+## Punto 7
+Concluya y agregue comentarios que muestren su entendimiento sobre los estimadores.
+
+En primer lugar, se puede observar que la caja correspondiente al estimador theta 1 se encuentra centrada en el valor real de theta, lo cual indica que este estimador es insesgado. Además, dado que la altura de la caja no es grande, se evidencia que presenta una varianza reducida, lo que implica una alta precisión. Por lo tanto, se puede concluir que theta 1 es un estimador preciso, consistente y eficiente.
+
+En segundo lugar, respecto al estimador theta 2, su caja se encuentra ligeramente por debajo del valor real de theta, lo cual confirma que es un estimador sesgado hacia abajo. Sin embargo, se destaca que la caja es más estrecha que la de theta 1, lo que indica una menor varianza y, por ende, una mayor precisión. Este estimador podría ser útil en contextos donde un pequeño sesgo no tenga un impacto significativo.
+
+Por último, el estimador theta 3 se representa con una caja considerablemente más amplia que las de los otros dos estimadores, lo que evidencia una varianza más alta en comparación con theta 1 y theta 2. Además, la mediana de theta 3 se ubica por debajo del valor real de theta. Aunque desde un punto de vista teórico theta 3 es insesgado, su elevada varianza lo convierte en un estimador inestable, por lo que no se recomienda su uso para estimar theta.
+
+
+ 
+
+
+ 
+ 
+ 
+
+
